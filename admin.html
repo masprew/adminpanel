@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="color-scheme" content="dark light" />
+<meta name="theme-color" content="#080C16" />
+<title>Nova Admin</title>
+
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('nova.theme') || 'dark';
+      var dark = true;
+      try { dark = matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) {}
+      document.documentElement.setAttribute('data-theme', t === 'system' ? (dark ? 'dark' : 'light') : t);
+    } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<style>
+:root {
+  --bg-0: #080C16;
+  --surface:    rgba(255,255,255,0.025);
+  --surface-2:  rgba(255,255,255,0.045);
+  --surface-3:  rgba(255,255,255,0.07);
+  --surface-solid: #0F1424;
+  --border:   rgba(255,255,255,0.06);
+  --border-2: rgba(255,255,255,0.10);
+  --border-3: rgba(255,255,255,0.16);
+  --text:   #FFFFFF;
+  --text-2: #A0A8BC;
+  --text-3: #6B7280;
+  --success: #34D399;
+  --danger:  #F87171;
+  --warning: #FBBF24;
+  --info:    #60A5FA;
+  --acc-1: #8B5CF6;
+  --acc-2: #10B981;
+  --acc-1-rgb: 139,92,246;
+  --acc-2-rgb: 16,185,129;
+  --grad-cta: linear-gradient(135deg, var(--acc-1), var(--acc-2));
+  --grad-premium: linear-gradient(135deg, #A78BFA, #8B5CF6);
+  --r-sm: 10px; --r: 14px; --r-md: 16px; --r-xl: 24px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+[data-theme="light"] {
+  --bg-0: #EEF0F7;
+  --surface: rgba(255,255,255,0.9);
+  --surface-2: rgba(15,20,40,0.035);
+  --surface-3: rgba(15,20,40,0.07);
+  --surface-solid: #FFFFFF;
+  --border: rgba(15,20,40,0.07);
+  --border-2: rgba(15,20,40,0.13);
+  --border-3: rgba(15,20,40,0.22);
+  --text: #0A0E1A;
+  --text-2: #4B5268;
+  --text-3: #8A90A4;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+* { -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; min-height: 100vh; width: 100%; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+  background: var(--bg-0);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+::selection { background: rgba(var(--acc-1-rgb), 0.55); color: #fff; }
+button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; padding: 0; }
+input, select, textarea { font: inherit; color: inherit; }
+svg { display: block; }
+a { color: inherit; text-decoration: none; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--acc-1); outline-offset: 2px; border-radius: 6px; }
+
+.atmo { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.atmo::before, .atmo::after { content: ''; position: absolute; border-radius: 50%; filter: blur(100px); }
+.atmo::before {
+  width: 500px; height: 500px; top: -200px; right: -150px;
+  background: radial-gradient(circle, rgba(var(--acc-1-rgb), 0.5), transparent 65%);
+  opacity: 0.15;
+}
+.atmo::after {
+  width: 450px; height: 450px; bottom: -180px; left: -150px;
+  background: radial-gradient(circle, rgba(var(--acc-2-rgb), 0.5), transparent 65%);
+  opacity: 0.12;
+}
+@media (max-width: 640px) { .atmo::before, .atmo::after { filter: blur(70px); } }
+
+.app { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; }
+
+.login-view { display: flex; align-items: center; justify-content: center; padding: 24px 16px; flex: 1; min-height: 100vh; }
+.login-card {
+  width: 100%; max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 28px 24px;
+  box-shadow: 0 24px 48px -16px rgba(0,0,0,0.7);
+  animation: card-in 400ms var(--ease-out) both;
+}
+@keyframes card-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.login-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 22px; }
+.login-brand-mark {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  background: var(--grad-premium);
+  color: #fff;
+  box-shadow: 0 4px 14px -4px rgba(var(--acc-1-rgb), 0.6);
+}
+.login-brand-mark svg { width: 16px; height: 16px; color: #fff; }
+.login-title { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 6px; }
+.login-desc { font-size: 13.5px; line-height: 1.55; color: var(--text-2); margin: 0 0 22px; }
+
+.field { margin-bottom: 16px; }
+.field-label { display: block; font-size: 11px; font-weight: 600; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.input-wrap { position: relative; }
+.input-icon {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  width: 16px; height: 16px;
+  color: var(--text-3);
+  pointer-events: none;
+  transition: color 200ms var(--ease);
+}
+.input-wrap:focus-within .input-icon { color: var(--acc-1); }
+
+.input, .select, .textarea {
+  width: 100%; height: 46px;
+  padding: 0 14px 0 42px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 200ms var(--ease), box-shadow 200ms var(--ease), background-color 200ms var(--ease);
+}
+.input::placeholder, .textarea::placeholder { color: var(--text-3); }
+.input:focus, .select:focus, .textarea:focus {
+  border-color: rgba(var(--acc-1-rgb), 0.6);
+  background: var(--surface-3);
+  box-shadow: 0 0 0 4px rgba(var(--acc-1-rgb), 0.12);
+}
+.input:disabled { opacity: 0.6; cursor: not-allowed; }
+.select {
+  padding-left: 14px; padding-right: 32px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.input.no-icon { padding-left: 14px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 46px; padding: 0 18px;
+  border-radius: var(--r-md);
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 180ms var(--ease), box-shadow 300ms var(--ease), background-color 200ms var(--ease), opacity 200ms var(--ease);
+  border: 1px solid transparent;
+}
+.btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { cursor: not-allowed; opacity: 0.5; }
+.btn-primary {
+  background: var(--grad-cta);
+  color: #fff;
+  box-shadow: 0 8px 22px -10px rgba(var(--acc-1-rgb), 0.65);
+}
+.btn-primary:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+.btn-secondary { background: var(--surface-2); color: var(--text); border-color: var(--border-2); }
+.btn-secondary:hover:not(:disabled) { background: var(--surface-3); border-color: var(--border-3); }
+.btn-ghost { background: transparent; color: var(--text-2); }
+.btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+.btn-danger { background: rgba(248,113,113,0.12); color: var(--danger); border-color: rgba(248,113,113,0.25); }
+.btn-danger:hover:not(:disabled) { background: rgba(248,113,113,0.2); }
+.btn-block { width: 100%; }
+.btn-sm { height: 36px; padding: 0 12px; font-size: 12.5px; border-radius: var(--r-sm); }
+.btn-icon { width: 36px; padding: 0; }
+.btn-icon.btn-sm { width: 32px; }
+
+.spinner {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.hdr {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(8,12,22,0.85);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding-top: var(--safe-top);
+}
+[data-theme="light"] .hdr { background: rgba(238,240,247,0.9); }
+.hdr-inner {
+  max-width: 1080px; margin: 0 auto;
+  padding: 0 16px; height: 60px;
+  display: flex; align-items: center; gap: 12px;
+}
+.hdr-brand { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; flex-shrink: 0; }
+.hdr-brand-mark {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  background: var(--grad-premium);
+  color: #fff;
+}
+.hdr-brand-mark svg { width: 15px; height: 15px; color: #fff; }
+.hdr-badge {
+  padding: 3px 8px; border-radius: 999px;
+  background: rgba(var(--acc-1-rgb), 0.15);
+  color: var(--acc-1);
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.hdr-actions { display: flex; gap: 6px; margin-left: auto; }
+
+.tabs {
+  display: flex; gap: 4px; padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 14px; min-height: 38px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+  transition: background-color 200ms var(--ease), color 200ms var(--ease);
+}
+.tab:hover { color: var(--text); }
+.tab.is-active { background: var(--surface-3); color: var(--text); font-weight: 600; }
+.tab svg { width: 14px; height: 14px; }
+
+.main {
+  max-width: 1080px; margin: 0 auto; width: 100%;
+  padding: 20px 16px calc(48px + var(--safe-bottom));
+}
+@media (min-width: 640px) { .main { padding: 28px 24px calc(60px + var(--safe-bottom)); } }
+
+.view { animation: view-in 300ms var(--ease-out) both; }
+@keyframes view-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+@media (min-width: 640px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+.stat {
+  padding: 16px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.stat-icon {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  background: rgba(var(--acc-1-rgb), 0.15);
+  color: var(--acc-1);
+  margin-bottom: 12px;
+}
+.stat-icon svg { width: 15px; height: 15px; }
+.stat-icon.success { background: rgba(52,211,153,0.15); color: var(--success); }
+.stat-icon.warning { background: rgba(251,191,36,0.15); color: var(--warning); }
+.stat-icon.info { background: rgba(96,165,250,0.15); color: var(--info); }
+.stat-icon.danger { background: rgba(248,113,113,0.15); color: var(--danger); }
+.stat-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 700; letter-spacing: -0.025em; }
+.stat-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+.section {
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.section-head {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.section-title { font-size: 15px; font-weight: 700; letter-spacing: -0.015em; flex: 1; min-width: 0; }
+.section-desc { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+.section-body { padding: 18px; }
+
+.list { display: grid; gap: 10px; }
+.item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: border-color 200ms var(--ease), background-color 200ms var(--ease);
+}
+.item:hover { border-color: var(--border-3); background: var(--surface-3); }
+.item.is-clickable { cursor: pointer; }
+.item-avatar {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  background: var(--grad-premium);
+  color: #fff;
+  font-size: 15px; font-weight: 700;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.item-avatar svg { width: 18px; height: 18px; }
+.item-avatar.is-login { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+.item-avatar.is-premium { background: linear-gradient(135deg, #34D399, #10B981); }
+.item-avatar.is-ban { background: linear-gradient(135deg, #F87171, #EF4444); }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.item-time { font-size: 11px; color: var(--text-3); flex-shrink: 0; text-align: right; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.badge svg { width: 10px; height: 10px; }
+.badge-success { background: rgba(52,211,153,0.12); color: var(--success); border-color: rgba(52,211,153,0.22); }
+.badge-warning { background: rgba(251,191,36,0.12); color: var(--warning); border-color: rgba(251,191,36,0.22); }
+.badge-danger  { background: rgba(248,113,113,0.12); color: var(--danger); border-color: rgba(248,113,113,0.22); }
+.badge-info    { background: rgba(96,165,250,0.12); color: var(--info); border-color: rgba(96,165,250,0.22); }
+.badge-neutral { background: var(--surface-3); color: var(--text-2); border-color: var(--border-2); }
+.badge-accent  { background: rgba(var(--acc-1-rgb), 0.15); color: var(--acc-1); border-color: rgba(var(--acc-1-rgb), 0.3); }
+
+.empty { text-align: center; padding: 40px 20px; color: var(--text-2); }
+.empty-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(var(--acc-1-rgb), 0.12);
+  color: var(--acc-1);
+}
+.empty-icon svg { width: 24px; height: 24px; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.empty-desc { font-size: 13px; line-height: 1.5; max-width: 320px; margin: 0 auto; }
+
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: flex-end; justify-content: center;
+  visibility: hidden; opacity: 0;
+  transition: opacity 240ms var(--ease), visibility 240ms var(--ease);
+}
+.modal.is-open { visibility: visible; opacity: 1; }
+.modal-bd {
+  position: absolute; inset: 0;
+  background: rgba(4,6,14,0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.modal-panel {
+  position: relative;
+  width: 100%; max-width: 520px;
+  max-height: 90vh; max-height: 90dvh;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  display: flex; flex-direction: column;
+  transform: translateY(20px); opacity: 0;
+  transition: transform 300ms var(--ease-out), opacity 220ms var(--ease);
+  overflow: hidden;
+}
+.modal.is-open .modal-panel { transform: translateY(0); opacity: 1; }
+@media (min-width: 640px) { .modal { align-items: center; padding: 24px; } .modal-panel { border-radius: var(--r-xl); max-height: 86vh; } }
+.modal-head {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-shrink: 0;
+}
+.modal-title { font-size: 15px; font-weight: 700; letter-spacing: -0.015em; display: flex; align-items: center; gap: 9px; }
+.modal-title svg { width: 17px; height: 17px; color: var(--acc-1); }
+.modal-body { padding: 20px; overflow-y: auto; }
+.modal-foot { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+.toast-region {
+  position: fixed;
+  bottom: calc(16px + var(--safe-bottom)); left: 16px; right: 16px;
+  z-index: 200;
+  display: flex; flex-direction: column; gap: 10px;
+  pointer-events: none;
+}
+@media (min-width: 640px) { .toast-region { left: auto; right: 24px; width: 360px; } }
+.toast {
+  pointer-events: auto;
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 13px 14px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  box-shadow: 0 24px 48px -16px rgba(0,0,0,0.7);
+  animation: toast-in 260ms var(--ease-out) both;
+}
+.toast.is-leaving { animation: toast-out 200ms var(--ease) both; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
+.toast-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+.toast[data-type="success"] .toast-icon { color: var(--success); }
+.toast[data-type="error"]   .toast-icon { color: var(--danger); }
+.toast[data-type="info"]    .toast-icon { color: var(--info); }
+.toast-title { font-size: 13.5px; font-weight: 600; }
+.toast-desc { font-size: 12.5px; color: var(--text-2); margin-top: 3px; }
+
+.code {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+  word-break: break-all;
+  overflow-x: auto;
+}
+.code strong { color: var(--text); }
+
+.note {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12.5px; line-height: 1.55;
+  color: var(--text-2);
+  margin-bottom: 16px;
+}
+.note svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; color: var(--info); }
+.note.warn { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.22); color: var(--warning); }
+.note.warn svg { color: var(--warning); }
+
+.search-wrap { position: relative; margin-bottom: 14px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > * { flex: 1 1 auto; min-width: 140px; }
+
+.duration-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+@media (min-width: 480px) { .duration-presets { grid-template-columns: repeat(6, 1fr); } }
+.duration-btn {
+  padding: 9px 6px;
+  min-height: 40px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 180ms var(--ease);
+  white-space: nowrap;
+}
+.duration-btn:hover { background: var(--surface-3); border-color: var(--border-3); color: var(--text); }
+.duration-btn.is-active {
+  background: rgba(var(--acc-1-rgb), 0.15);
+  border-color: rgba(var(--acc-1-rgb), 0.5);
+  color: var(--acc-1);
+  font-weight: 600;
+}
+.duration-btn[data-days="0"].is-active {
+  background: rgba(96,165,250,0.15);
+  border-color: rgba(96,165,250,0.5);
+  color: var(--info);
+}
+
+/* ===== Filter chips ===== */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  min-height: 36px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 180ms var(--ease);
+  flex-shrink: 0;
+}
+.chip svg { width: 13px; height: 13px; }
+.chip:hover { background: var(--surface-3); color: var(--text); border-color: var(--border-3); }
+.chip.is-active {
+  background: rgba(var(--acc-1-rgb), 0.15);
+  border-color: rgba(var(--acc-1-rgb), 0.5);
+  color: var(--acc-1);
+  font-weight: 600;
+}
+
+/* ===== User Detail Modal ===== */
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.user-header-avatar {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  background: var(--grad-premium);
+  color: #fff;
+  font-size: 22px; font-weight: 700;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.user-header-info { flex: 1; min-width: 0; }
+.user-header-name { font-size: 16px; font-weight: 700; letter-spacing: -0.015em; }
+.user-header-phone { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.mini-stat {
+  padding: 12px 14px;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.mini-stat-value { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.mini-stat-label { font-size: 11px; color: var(--text-3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.timeline { position: relative; padding-left: 22px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px; top: 8px; bottom: 8px;
+  width: 2px;
+  background: var(--border-2);
+  border-radius: 2px;
+}
+.tl-item { position: relative; padding-bottom: 14px; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-dot {
+  position: absolute;
+  left: -22px; top: 4px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--surface-solid);
+  border: 2px solid var(--border-3);
+}
+.tl-item[data-type="login"] .tl-dot { background: var(--acc-1); border-color: var(--acc-1); }
+.tl-item[data-type="activate_premium"] .tl-dot { background: var(--success); border-color: var(--success); }
+.tl-item[data-type="ban"] .tl-dot { background: var(--danger); border-color: var(--danger); }
+.tl-title { font-size: 13.5px; font-weight: 600; }
+.tl-time { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="atmo" aria-hidden="true"></div>
+
+<div class="app">
+
+  <div id="view-login" class="login-view">
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="login-brand-mark"><i data-lucide="shield-check"></i></span>
+        <span>Nova Admin</span>
+        <span class="hdr-badge">Panel</span>
+      </div>
+      <h1 class="login-title">Masuk ke Panel</h1>
+      <p class="login-desc">Masukkan password admin untuk mengelola akses dan token.</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="login-pw" class="field-label">Password Admin</label>
+          <div class="input-wrap">
+            <i data-lucide="key-round" class="input-icon"></i>
+            <input id="login-pw" type="password" class="input" placeholder="••••••••" autocomplete="current-password" autofocus />
+          </div>
+          <p id="login-err" style="color:var(--danger);font-size:12.5px;margin:9px 0 0;display:none"></p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+          <i data-lucide="log-in"></i><span>Masuk</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="view-main" hidden>
+    <header class="hdr">
+      <div class="hdr-inner">
+        <div class="hdr-brand">
+          <span class="hdr-brand-mark"><i data-lucide="zap"></i></span>
+          <span>Nova</span>
+          <span class="hdr-badge">Admin</span>
+        </div>
+        <div class="hdr-actions">
+          <button class="btn btn-ghost btn-sm btn-icon" id="btn-refresh" title="Refresh data">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-logout" title="Keluar">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" data-tab="dashboard" role="tab" aria-selected="true">
+          <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
+        </button>
+        <button class="tab" data-tab="users" role="tab" aria-selected="false">
+          <i data-lucide="users"></i><span>Akun</span>
+        </button>
+        <button class="tab" data-tab="activity" role="tab" aria-selected="false">
+          <i data-lucide="activity"></i><span>Aktivitas</span>
+        </button>
+        <button class="tab" data-tab="token" role="tab" aria-selected="false">
+          <i data-lucide="key-round"></i><span>Token</span>
+        </button>
+        <button class="tab" data-tab="settings" role="tab" aria-selected="false">
+          <i data-lucide="settings"></i><span>Pengaturan</span>
+        </button>
+      </div>
+
+      <!-- ===== DASHBOARD ===== -->
+      <section class="view" data-view="dashboard" style="margin-top:20px">
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-icon"><i data-lucide="users"></i></div>
+            <div class="stat-label">Total Akun</div>
+            <div class="stat-value" id="stat-total">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon success"><i data-lucide="check-circle-2"></i></div>
+            <div class="stat-label">Aktif</div>
+            <div class="stat-value" id="stat-active">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon warning"><i data-lucide="clock"></i></div>
+            <div class="stat-label">Segera Expired</div>
+            <div class="stat-value" id="stat-soon">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon info"><i data-lucide="database"></i></div>
+            <div class="stat-label">Session Ver.</div>
+            <div class="stat-value" id="stat-version">—</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Aktivitas Hari Ini</div>
+              <div class="section-desc">Ringkasan sejak pukul 00:00</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="stats" style="margin-bottom:0">
+              <div class="stat" style="padding:12px">
+                <div class="stat-icon" style="width:28px;height:28px;margin-bottom:8px"><i data-lucide="log-in" style="width:13px;height:13px"></i></div>
+                <div class="stat-value" style="font-size:20px" id="today-logins">—</div>
+                <div class="stat-label" style="margin-top:2px">Login</div>
+              </div>
+              <div class="stat" style="padding:12px">
+                <div class="stat-icon success" style="width:28px;height:28px;margin-bottom:8px"><i data-lucide="zap" style="width:13px;height:13px"></i></div>
+                <div class="stat-value" style="font-size:20px" id="today-activations">—</div>
+                <div class="stat-label" style="margin-top:2px">Aktivasi</div>
+              </div>
+              <div class="stat" style="padding:12px">
+                <div class="stat-icon info" style="width:28px;height:28px;margin-bottom:8px"><i data-lucide="users" style="width:13px;height:13px"></i></div>
+                <div class="stat-value" style="font-size:20px" id="today-unique">—</div>
+                <div class="stat-label" style="margin-top:2px">User Unik</div>
+              </div>
+              <div class="stat" style="padding:12px">
+                <div class="stat-icon warning" style="width:28px;height:28px;margin-bottom:8px"><i data-lucide="activity" style="width:13px;height:13px"></i></div>
+                <div class="stat-value" style="font-size:20px" id="today-total">—</div>
+                <div class="stat-label" style="margin-top:2px">Total</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Akun Terbaru</div>
+              <div class="section-desc">5 akun terakhir yang terdaftar</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-goto-users">
+              Lihat Semua <i data-lucide="arrow-right"></i>
+            </button>
+          </div>
+          <div class="section-body">
+            <div class="list" id="recent-list"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Aktivitas Terbaru</div>
+              <div class="section-desc">10 aktivitas terakhir</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-goto-activity">
+              Lihat Semua <i data-lucide="arrow-right"></i>
+            </button>
+          </div>
+          <div class="section-body">
+            <div class="list" id="recent-activity-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== USERS ===== -->
+      <section class="view" data-view="users" hidden style="margin-top:20px">
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Daftar Akun Terdaftar</div>
+              <div class="section-desc" id="users-count">— akun</div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-add-user">
+              <i data-lucide="plus"></i><span>Tambah Akun</span>
+            </button>
+          </div>
+          <div class="section-body">
+            <div class="search-wrap">
+              <div class="input-wrap">
+                <i data-lucide="search" class="input-icon"></i>
+                <input id="search-users" type="search" class="input" placeholder="Cari nama atau nomor..." />
+              </div>
+            </div>
+            <div class="list" id="users-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ACTIVITY (ENHANCED) ===== -->
+      <section class="view" data-view="activity" hidden style="margin-top:20px">
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-icon"><i data-lucide="activity"></i></div>
+            <div class="stat-label">Total Aktivitas</div>
+            <div class="stat-value" id="act-total">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon success"><i data-lucide="log-in"></i></div>
+            <div class="stat-label">Login</div>
+            <div class="stat-value" id="act-logins">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon warning"><i data-lucide="zap"></i></div>
+            <div class="stat-label">Aktivasi Premium</div>
+            <div class="stat-value" id="act-premium">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon info"><i data-lucide="user-check"></i></div>
+            <div class="stat-label">User Unik</div>
+            <div class="stat-value" id="act-unique">—</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Filter Periode</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh-activity">
+              <i data-lucide="refresh-cw"></i><span>Refresh</span>
+            </button>
+          </div>
+          <div class="section-body" style="padding-top:12px">
+            <div class="filter-row" id="date-filter">
+              <button class="chip is-active" data-range="today"><i data-lucide="sun"></i>Hari Ini</button>
+              <button class="chip" data-range="7d"><i data-lucide="calendar"></i>7 Hari</button>
+              <button class="chip" data-range="30d"><i data-lucide="calendar"></i>30 Hari</button>
+              <button class="chip" data-range="all"><i data-lucide="infinity"></i>Semua</button>
+            </div>
+            <div class="filter-row" id="type-filter">
+              <button class="chip is-active" data-type=""><i data-lucide="layers"></i>Semua Tipe</button>
+              <button class="chip" data-type="login"><i data-lucide="log-in"></i>Login</button>
+              <button class="chip" data-type="activate_premium"><i data-lucide="zap"></i>Aktivasi</button>
+            </div>
+            <div class="search-wrap" style="margin-bottom:0;margin-top:6px">
+              <div class="input-wrap">
+                <i data-lucide="search" class="input-icon"></i>
+                <input id="search-activity" type="search" class="input" placeholder="Cari nomor / nama / email..." />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Log Aktivitas</div>
+              <div class="section-desc" id="activity-count">—</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="list" id="activity-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== TOKEN ===== -->
+      <section class="view" data-view="token" hidden style="margin-top:20px">
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Token Akses</div>
+          </div>
+          <div class="section-body">
+            <div class="note">
+              <i data-lucide="info"></i>
+              <span>Token ini yang harus dimasukkan user di halaman verifikasi. Setelah diganti, user baru harus pakai token baru. Untuk memaksa semua user lama login ulang, centang <strong>"Logout semua user"</strong> saat menyimpan.</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Token Saat Ini</label>
+              <div class="code" id="current-token">—</div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Token Baru</label>
+              <div class="row">
+                <div class="input-wrap" style="flex:1">
+                  <i data-lucide="key-round" class="input-icon"></i>
+                  <input id="input-token" type="text" class="input" placeholder="decatech_xxxxx" />
+                </div>
+                <button class="btn btn-secondary" id="btn-generate-token" title="Generate acak">
+                  <i data-lucide="dice-5"></i><span>Generate</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="field" style="display:flex;align-items:center;gap:10px;margin-top:16px">
+              <input type="checkbox" id="chk-logout-token" style="width:18px;height:18px" />
+              <label for="chk-logout-token" style="font-size:13.5px;color:var(--text-2)">
+                Logout semua user setelah ganti token
+              </label>
+            </div>
+
+            <button class="btn btn-primary" id="btn-save-token" style="margin-top:16px">
+              <i data-lucide="save"></i><span>Simpan Token</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS ===== -->
+      <section class="view" data-view="settings" hidden style="margin-top:20px">
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Keamanan Admin</div>
+          </div>
+          <div class="section-body">
+            <div class="field">
+              <label for="input-new-pw" class="field-label">Password Admin Baru</label>
+              <div class="input-wrap">
+                <i data-lucide="key" class="input-icon"></i>
+                <input id="input-new-pw" type="password" class="input" placeholder="Password baru" autocomplete="new-password" />
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-save-pw" style="margin-top:8px">
+              <i data-lucide="save"></i><span>Ganti Password</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Session Control</div>
+              <div class="section-desc">Kelola sesi login user</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="note">
+              <i data-lucide="info"></i>
+              <span>Session version saat ini: <strong id="current-version">—</strong>. Setiap kali dinaikkan, semua user akan diminta memasukkan ulang token dan nomor.</span>
+            </div>
+            <button class="btn btn-danger" id="btn-force-logout">
+              <i data-lucide="log-out"></i><span>Logout Semua User</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Info Database</div>
+          </div>
+          <div class="section-body">
+            <div class="note">
+              <i data-lucide="info"></i>
+              <span>Data disimpan di Supabase (PostgreSQL). Backup otomatis setiap hari. Real-time aktif untuk auto-logout instan.</span>
+            </div>
+            <div class="code" style="text-align:center">Supabase Cloud · PostgreSQL</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ===== MODAL: USER ===== -->
+<div id="modal-user" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-bd" data-close></div>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-user-title">
+        <i data-lucide="user-plus"></i><span>Tambah Akun</span>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-icon" data-close aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="u-phone" class="field-label">Nomor HP (format 62...)</label>
+        <div class="input-wrap">
+          <i data-lucide="phone" class="input-icon"></i>
+          <input id="u-phone" type="tel" class="input" placeholder="6281234567890" inputmode="numeric" />
+        </div>
+        <p style="font-size:12px;color:var(--text-3);margin:6px 0 0">Format: <code>6281234567890</code></p>
+      </div>
+      <div class="field">
+        <label for="u-name" class="field-label">Nama</label>
+        <div class="input-wrap">
+          <i data-lucide="user" class="input-icon"></i>
+          <input id="u-name" type="text" class="input" placeholder="Nama user" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="u-plan" class="field-label">Plan</label>
+        <div class="input-wrap">
+          <i data-lucide="crown" class="input-icon"></i>
+          <input id="u-plan" type="text" class="input" placeholder="premium / vip / trial" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Durasi Akses</label>
+        <div class="duration-presets" id="duration-presets">
+          <button type="button" class="duration-btn" data-days="7">7 hari</button>
+          <button type="button" class="duration-btn" data-days="30">30 hari</button>
+          <button type="button" class="duration-btn" data-days="90">90 hari</button>
+          <button type="button" class="duration-btn" data-days="180">6 bulan</button>
+          <button type="button" class="duration-btn" data-days="365">1 tahun</button>
+          <button type="button" class="duration-btn" data-days="0">Selamanya</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="u-expires" class="field-label">Tanggal Berakhir</label>
+        <div class="input-wrap">
+          <i data-lucide="calendar" class="input-icon"></i>
+          <input id="u-expires" type="date" class="input" />
+        </div>
+        <p id="u-expires-info" style="font-size:12px;color:var(--text-3);margin:6px 0 0">
+          Kosongkan untuk tanpa tanggal berakhir.
+        </p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Tutup</button>
+      <button class="btn btn-primary" id="btn-save-user">
+        <i data-lucide="save"></i><span>Simpan</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: USER DETAIL ===== -->
+<div id="modal-detail" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-bd" data-close></div>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-title">
+        <i data-lucide="user-circle"></i><span id="detail-name">Detail User</span>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-icon" data-close aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" id="detail-body">
+      <div style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto;color:var(--acc-1)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CONFIRM ===== -->
+<div id="modal-confirm" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-bd" data-close></div>
+  <div class="modal-panel" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title"><i data-lucide="alert-triangle" style="color:var(--warning)"></i><span id="confirm-title">Konfirmasi</span></div>
+      <button class="btn btn-ghost btn-sm btn-icon" data-close aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-msg" style="font-size:13.5px;line-height:1.6;color:var(--text-2);margin:0"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Batal</button>
+      <button class="btn btn-danger" id="btn-confirm-yes">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+<<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const supabase = createClient(
+  'https://sdjgbrkjhguoiwouwcti.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkamdicmtqaGd1b2l3b3V3Y3RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MjExNTAsImV4cCI6MjEwNzA5NzE1MH0.Sm40JEXnvbAzbA-dN-V_eCyoJz_G9_DyTAie1te55-E'
+);
+
+(function () {
+  'use strict';
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  function icons() { if (window.lucide && window.lucide.createIcons) window.lucide.createIcons(); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+    });
+  }
+  function normalizePhone(raw) {
+    var p = String(raw || '').replace(/\D/g, '');
+    if (!p) return '';
+    if (p.charAt(0) === '0') p = '62' + p.slice(1);
+    else if (p.charAt(0) === '8') p = '62' + p;
+    else if (p.indexOf('62') !== 0) p = '62' + p;
+    return p;
+  }
+  function formatPhone(p) {
+    if (!p) return '';
+    var local = p.indexOf('62') === 0 ? '0' + p.slice(2) : p;
+    return local.replace(/(\d{4})(\d{4})(\d+)/, '$1-$2-$3');
+  }
+  function formatDate(iso) {
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) { return iso; }
+  }
+  function daysUntil(iso) {
+    if (!iso) return null;
+    var exp = new Date(iso).getTime();
+    if (isNaN(exp)) return null;
+    return Math.ceil((exp - Date.now()) / (24 * 60 * 60 * 1000));
+  }
+  function timeAgo(ts) {
+    var t = new Date(ts).getTime();
+    var diff = Date.now() - t;
+    var sec = Math.floor(diff / 1000);
+    if (sec < 60) return 'baru saja';
+    var min = Math.floor(sec / 60);
+    if (min < 60) return min + ' menit lalu';
+    var hour = Math.floor(min / 60);
+    if (hour < 24) return hour + ' jam lalu';
+    var day = Math.floor(hour / 24);
+    if (day < 30) return day + ' hari lalu';
+    return new Date(ts).toLocaleDateString('id-ID');
+  }
+  function timeFull(ts) {
+    var d = new Date(ts);
+    return d.toLocaleString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+  function generateToken() {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var result = 'decatech_';
+    try {
+      var arr = new Uint8Array(32);
+      crypto.getRandomValues(arr);
+      for (var i = 0; i < 32; i++) result += chars.charAt(arr[i] % chars.length);
+    } catch (e) {
+      for (var j = 0; j < 32; j++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  /* ===== STATE ===== */
+  var S = {
+    loggedIn: false,
+    config: {},
+    users: [],
+    activity: [],
+    currentTab: 'dashboard',
+    editingPhone: null,
+    confirmCallback: null,
+    searchUsers: '',
+    searchActivity: '',
+    activityRange: 'today',
+    activityType: '',
+    activityLoading: false,
+  };
+
+  var ls = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+
+  /* ===== TOAST ===== */
+  function toast(type, title, desc, ttl) {
+    if (ttl == null) ttl = 3800;
+    var region = $('#toast-region');
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.dataset.type = type;
+    var icon = { success: 'check-circle-2', error: 'alert-circle', info: 'info' }[type] || 'info';
+    el.innerHTML =
+      '<i data-lucide="' + icon + '" class="toast-icon"></i>' +
+      '<div style="min-width:0;flex:1">' +
+        '<div class="toast-title">' + esc(title) + '</div>' +
+        (desc ? '<div class="toast-desc">' + esc(desc) + '</div>' : '') +
+      '</div>';
+    region.appendChild(el);
+    icons();
+    setTimeout(function () {
+      el.classList.add('is-leaving');
+      setTimeout(function () { if (el.parentNode) el.remove(); }, 300);
+    }, ttl);
+  }
+
+  /* ===== LOAD CONFIG ===== */
+  async function loadConfig() {
+    var res = await supabase.from('app_config').select('key, value');
+    if (res.error) throw res.error;
+    var cfg = {};
+    (res.data || []).forEach(function (row) { cfg[row.key] = row.value; });
+    S.config = cfg;
+    return cfg;
+  }
+
+  /* ===== LOGIN ===== */
+  function bindLogin() {
+    var form = $('#login-form');
+    var pwEl = $('#login-pw');
+    var errEl = $('#login-err');
+    var btn = $('#login-btn');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var pw = pwEl.value;
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span><span>Memeriksa…</span>';
+
+      try {
+        await loadConfig();
+        var expected = S.config.adminPassword || 'admin123';
+
+        if (pw !== expected) {
+          errEl.textContent = 'Password salah.';
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="log-in"></i><span>Masuk</span>';
+          icons();
+          return;
+        }
+
+        ls.set('admin.session', '1');
+        S.loggedIn = true;
+        showMain();
+      } catch (err) {
+        errEl.textContent = 'Error: ' + err.message;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="log-in"></i><span>Masuk</span>';
+        icons();
+      }
+    });
+  }
+
+  function logout() {
+    ls.del('admin.session');
+    S.loggedIn = false;
+    $('#view-main').hidden = true;
+    $('#view-login').hidden = false;
+    $('#login-pw').value = '';
+    icons();
+  }
+
+  function showMain() {
+    $('#view-login').hidden = true;
+    $('#view-main').hidden = false;
+    icons();
+    refreshAll();
+    subscribeRealtime();
+  }
+
+  function switchTab(tab) {
+    S.currentTab = tab;
+    $$('.tab').forEach(function (b) {
+      var active = b.dataset.tab === tab;
+      b.classList.toggle('is-active', active);
+      b.setAttribute('aria-selected', String(active));
+    });
+    $$('[data-view]').forEach(function (v) {
+      v.hidden = v.dataset.view !== tab;
+    });
+    icons();
+    if (tab === 'activity') loadActivity();
+  }
+
+  /* ===== REFRESH ALL ===== */
+  async function refreshAll() {
+    try {
+      await loadConfig();
+      await loadUsers();
+      renderDashboard();
+      renderUsers();
+      renderTokenTab();
+      renderSettingsTab();
+    } catch (err) {
+      toast('error', 'Gagal load data', err.message);
+    }
+  }
+
+  /* ===== USERS ===== */
+  async function loadUsers() {
+    var res = await supabase
+      .from('users')
+      .select('phone, name, plan, expires, banned, created_at')
+      .order('created_at', { ascending: false });
+    if (res.error) throw res.error;
+    S.users = res.data || [];
+  }
+
+  function renderDashboard() {
+    var users = S.users;
+    var total = users.length;
+    var active = 0;
+    var soon = 0;
+    var now = Date.now();
+
+    users.forEach(function (u) {
+      if (u.banned === true) return;
+      if (u.expires) {
+        var exp = new Date(u.expires).getTime();
+        if (!isNaN(exp)) {
+          if (exp < now) return;
+          if ((exp - now) < 7 * 24 * 60 * 60 * 1000) soon++;
+        }
+      }
+      active++;
+    });
+
+    $('#stat-total').textContent = total;
+    $('#stat-active').textContent = active;
+    $('#stat-soon').textContent = soon;
+    $('#stat-version').textContent = S.config.sessionVersion || 1;
+
+    // Recent users
+    var recent = users.slice(0, 5);
+    var rl = $('#recent-list');
+    if (!recent.length) {
+      rl.innerHTML = '<div class="empty"><div class="empty-icon"><i data-lucide="users"></i></div><div class="empty-title">Belum ada akun</div><div class="empty-desc">Tambahkan akun pertama di tab Akun.</div></div>';
+    } else {
+      rl.innerHTML = recent.map(renderUserItem).join('');
+    }
+    icons();
+    bindUserActions(rl);
+
+    // Today's stats — will be filled by loadActivity()
+    loadTodayStats();
+  }
+
+  async function loadTodayStats() {
+    var todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    var res = await supabase
+      .from('activity_log')
+      .select('type, phone, created_at')
+      .gte('created_at', todayStart.toISOString());
+    if (res.error) return;
+    var data = res.data || [];
+    var logins = data.filter(function (e) { return e.type === 'login'; }).length;
+    var acts = data.filter(function (e) { return e.type === 'activate_premium'; }).length;
+    var uniq = {};
+    data.forEach(function (e) { if (e.phone) uniq[e.phone] = true; });
+
+    $('#today-logins').textContent = logins;
+    $('#today-activations').textContent = acts;
+    $('#today-unique').textContent = Object.keys(uniq).length;
+    $('#today-total').textContent = data.length;
+  }
+
+  function renderUserItem(u) {
+    var phone = u.phone;
+    var initial = (u.name || phone || '?').charAt(0);
+    var expDays = u.expires ? daysUntil(u.expires) : null;
+    var isBanned = u.banned === true;
+
+    var expBadge = '';
+    if (isBanned) {
+      expBadge = '<span class="badge badge-danger"><i data-lucide="ban"></i>DIBLOKIR</span>';
+    } else if (expDays !== null) {
+      if (expDays < 0) expBadge = '<span class="badge badge-danger"><i data-lucide="x"></i>Expired</span>';
+      else if (expDays <= 7) expBadge = '<span class="badge badge-warning"><i data-lucide="clock"></i>' + expDays + ' hari</span>';
+      else expBadge = '<span class="badge badge-success"><i data-lucide="check"></i>' + formatDate(u.expires) + '</span>';
+    } else {
+      expBadge = '<span class="badge badge-neutral"><i data-lucide="infinity"></i>No expiry</span>';
+    }
+
+    var banBtn = isBanned
+      ? '<button class="btn btn-ghost btn-sm btn-icon" data-unban="' + esc(phone) + '" title="Buka blokir" style="color:var(--success)"><i data-lucide="lock-open"></i></button>'
+      : '<button class="btn btn-ghost btn-sm btn-icon" data-ban="' + esc(phone) + '" title="Blokir" style="color:var(--warning)"><i data-lucide="ban"></i></button>';
+
+    return '<div class="item"' + (isBanned ? ' style="border-color:rgba(248,113,113,0.3);opacity:0.85"' : '') + '>' +
+      '<div class="item-avatar"' + (isBanned ? ' style="background:rgba(248,113,113,0.2);color:var(--danger)"' : '') + '>' + esc(initial) + '</div>' +
+      '<div class="item-info">' +
+        '<div class="item-name">' + esc(u.name || '(tanpa nama)') + '</div>' +
+        '<div class="item-sub">' +
+          '<span>' + esc(formatPhone(phone)) + '</span>' +
+          '<span>•</span>' +
+          '<span>' + esc((u.plan || 'basic').toUpperCase()) + '</span>' +
+          ' ' + expBadge +
+        '</div>' +
+      '</div>' +
+      '<div class="item-actions">' +
+        banBtn +
+        '<button class="btn btn-ghost btn-sm btn-icon" data-edit="' + esc(phone) + '" title="Edit"><i data-lucide="pencil"></i></button>' +
+        '<button class="btn btn-ghost btn-sm btn-icon" data-detail="' + esc(phone) + '" title="Lihat aktivitas"><i data-lucide="bar-chart-2"></i></button>' +
+        '<button class="btn btn-ghost btn-sm btn-icon" data-delete="' + esc(phone) + '" title="Hapus" style="color:var(--danger)"><i data-lucide="trash-2"></i></button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function bindUserActions(root) {
+    $$('[data-edit]', root).forEach(function (b) {
+      b.onclick = function () { openUserModal(b.dataset.edit); };
+    });
+    $$('[data-delete]', root).forEach(function (b) {
+      b.onclick = function () { confirmDeleteUser(b.dataset.delete); };
+    });
+    $$('[data-ban]', root).forEach(function (b) {
+      b.onclick = function () { confirmBanUser(b.dataset.ban); };
+    });
+    $$('[data-unban]', root).forEach(function (b) {
+      b.onclick = function () { confirmUnbanUser(b.dataset.unban); };
+    });
+    $$('[data-detail]', root).forEach(function (b) {
+      b.onclick = function () { openUserDetail(b.dataset.detail); };
+    });
+  }
+
+  function renderUsers() {
+    var q = S.searchUsers.toLowerCase();
+    var users = S.users.filter(function (u) {
+      if (!q) return true;
+      var hay = ((u.phone || '') + ' ' + (u.name || '')).toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+
+    $('#users-count').textContent = users.length + ' akun' + (q ? ' (difilter dari ' + S.users.length + ')' : '');
+
+    var list = $('#users-list');
+    if (!users.length) {
+      list.innerHTML = '<div class="empty">' +
+        '<div class="empty-icon"><i data-lucide="' + (q ? 'search-x' : 'users') + '"></i></div>' +
+        '<div class="empty-title">' + (q ? 'Tidak ada hasil' : 'Belum ada akun') + '</div>' +
+        '<div class="empty-desc">' + (q ? 'Coba kata kunci lain.' : 'Tambahkan akun pertama dengan tombol di atas.') + '</div>' +
+      '</div>';
+    } else {
+      list.innerHTML = users.map(renderUserItem).join('');
+    }
+    icons();
+    bindUserActions(list);
+  }
+
+  /* ===== USER MODAL ===== */
+  function openUserModal(phone) {
+    var modal = $('#modal-user');
+    S.editingPhone = phone || null;
+    var u = phone ? (S.users.filter(function (x) { return x.phone === phone; })[0] || {}) : {};
+
+    $('#modal-user-title').innerHTML = '<i data-lucide="' + (phone ? 'pencil' : 'user-plus') + '"></i><span>' + (phone ? 'Edit Akun' : 'Tambah Akun') + '</span>';
+    $('#u-phone').value = phone || '';
+    $('#u-phone').disabled = !!phone;
+    $('#u-name').value = u.name || '';
+    $('#u-plan').value = u.plan || '';
+    $('#u-expires').value = u.expires ? u.expires.split('T')[0] : '';
+
+    $$('.duration-btn').forEach(function (b) { b.classList.remove('is-active'); });
+
+    if (u.expires) {
+      var days = daysUntil(u.expires);
+      if (days !== null && days >= 0) {
+        var presets = [7, 30, 90, 180, 365];
+        var closest = null;
+        var minDiff = 5;
+        presets.forEach(function (p) {
+          var diff = Math.abs(days - p);
+          if (diff < minDiff) { minDiff = diff; closest = p; }
+        });
+        if (closest) {
+          var btn = document.querySelector('.duration-btn[data-days="' + closest + '"]');
+          if (btn) btn.classList.add('is-active');
+        }
+      }
+    } else if (phone) {
+      var forever = document.querySelector('.duration-btn[data-days="0"]');
+      if (forever) forever.classList.add('is-active');
+    }
+
+    updateExpiresInfo();
+    modal.classList.add('is-open');
+    icons();
+    if (!phone) setTimeout(function () { $('#u-phone').focus(); }, 100);
+  }
+
+  function closeModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.remove('is-open');
+  }
+
+  function updateExpiresInfo() {
+    var val = $('#u-expires').value;
+    var infoEl = $('#u-expires-info');
+    if (!infoEl) return;
+    if (!val) {
+      infoEl.textContent = 'Kosongkan untuk tanpa tanggal berakhir.';
+      infoEl.style.color = 'var(--text-3)';
+      return;
+    }
+    var d = new Date(val);
+    var days = daysUntil(val);
+    var formatted = d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+    if (days !== null) {
+      if (days < 0) {
+        infoEl.textContent = 'Berakhir: ' + formatted + ' (sudah lewat ' + Math.abs(days) + ' hari)';
+        infoEl.style.color = 'var(--danger)';
+      } else if (days === 0) {
+        infoEl.textContent = 'Berakhir: ' + formatted + ' (hari ini)';
+        infoEl.style.color = 'var(--warning)';
+      } else {
+        infoEl.textContent = 'Berakhir: ' + formatted + ' (' + days + ' hari lagi)';
+        infoEl.style.color = 'var(--text-3)';
+      }
+    }
+  }
+
+  function setDurationPreset(days, btnEl) {
+    $$('.duration-btn').forEach(function (b) { b.classList.remove('is-active'); });
+    if (days === 0) {
+      $('#u-expires').value = '';
+    } else {
+      var d = new Date();
+      d.setDate(d.getDate() + days);
+      var yyyy = d.getFullYear();
+      var mm = String(d.getMonth() + 1).padStart(2, '0');
+      var dd = String(d.getDate()).padStart(2, '0');
+      $('#u-expires').value = yyyy + '-' + mm + '-' + dd;
+    }
+    if (btnEl) btnEl.classList.add('is-active');
+    updateExpiresInfo();
+  }
+
+  async function saveUser() {
+    var phone = normalizePhone($('#u-phone').value.trim());
+    var name = $('#u-name').value.trim();
+    var plan = $('#u-plan').value.trim();
+    var expires = $('#u-expires').value;
+
+    if (!phone || phone.length < 11) {
+      toast('error', 'Nomor tidak valid', 'Minimal 11 digit.');
+      return;
+    }
+    if (!name) {
+      toast('error', 'Nama wajib diisi', '');
+      return;
+    }
+
+    var btn = $('#btn-save-user');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span><span>Menyimpan…</span>';
+
+    try {
+      var data = {
+        phone: phone,
+        name: name,
+        plan: plan || 'basic',
+        expires: expires ? new Date(expires).toISOString() : null,
+      };
+
+      var res;
+      if (S.editingPhone) {
+        res = await supabase.from('users').update(data).eq('phone', phone);
+      } else {
+        res = await supabase.from('users').insert(data);
+      }
+      if (res.error) throw res.error;
+
+      toast('success', S.editingPhone ? 'Akun diupdate' : 'Akun ditambahkan', formatPhone(phone));
+      closeModal('modal-user');
+      S.editingPhone = null;
+      await loadUsers();
+      renderDashboard();
+      renderUsers();
+    } catch (err) {
+      toast('error', 'Gagal menyimpan', err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="save"></i><span>Simpan</span>';
+      icons();
+    }
+  }
+
+  function confirmDeleteUser(phone) {
+    var u = S.users.filter(function (x) { return x.phone === phone; })[0] || {};
+    showConfirm(
+      'Hapus akun ini?',
+      'Nomor ' + formatPhone(phone) + ' (' + (u.name || 'tanpa nama') + ') akan dihapus permanen. User tidak akan bisa masuk lagi.',
+      'Hapus',
+      async function () {
+        try {
+          var res = await supabase.from('users').delete().eq('phone', phone);
+          if (res.error) throw res.error;
+          toast('success', 'Akun dihapus', formatPhone(phone));
+          await loadUsers();
+          renderDashboard();
+          renderUsers();
+        } catch (err) {
+          toast('error', 'Gagal menghapus', err.message);
+        }
+      }
+    );
+  }
+
+  function confirmBanUser(phone) {
+    var u = S.users.filter(function (x) { return x.phone === phone; })[0] || {};
+    showConfirm(
+      'Blokir user ini?',
+      'Nomor ' + formatPhone(phone) + ' (' + (u.name || 'tanpa nama') + ') akan diblokir. User yang sedang login akan keluar dalam ~1 detik.',
+      'Blokir',
+      async function () {
+        try {
+          var res = await supabase.from('users').update({ banned: true }).eq('phone', phone);
+          if (res.error) throw res.error;
+          toast('success', 'User diblokir', formatPhone(phone));
+          await loadUsers();
+          renderDashboard();
+          renderUsers();
+        } catch (err) {
+          toast('error', 'Gagal blokir', err.message);
+        }
+      }
+    );
+  }
+
+  function confirmUnbanUser(phone) {
+    var u = S.users.filter(function (x) { return x.phone === phone; })[0] || {};
+    showConfirm(
+      'Buka blokir user ini?',
+      'Nomor ' + formatPhone(phone) + ' (' + (u.name || 'tanpa nama') + ') akan bisa masuk lagi.',
+      'Buka Blokir',
+      async function () {
+        try {
+          var res = await supabase.from('users').update({ banned: false }).eq('phone', phone);
+          if (res.error) throw res.error;
+          toast('success', 'Blokir dibuka', formatPhone(phone));
+          await loadUsers();
+          renderDashboard();
+          renderUsers();
+        } catch (err) {
+          toast('error', 'Gagal buka blokir', err.message);
+        }
+      }
+    );
+  }
+
+  /* ===== USER DETAIL ===== */
+  async function openUserDetail(phone) {
+    var u = S.users.filter(function (x) { return x.phone === phone; })[0] || {};
+    $('#detail-name').textContent = u.name || 'Detail User';
+    $('#detail-body').innerHTML = '<div style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto;color:var(--acc-1)"></div></div>';
+    $('#modal-detail').classList.add('is-open');
+    icons();
+
+    try {
+      var res = await supabase
+        .from('activity_log')
+        .select('*')
+        .eq('phone', phone)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (res.error) throw res.error;
+      var events = res.data || [];
+
+      // Hitung stats
+      var todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      var weekStart = new Date(); weekStart.setDate(weekStart.getDate() - 7);
+
+      var loginsToday = 0, actsToday = 0, loginsWeek = 0, actsWeek = 0, totalLogins = 0, totalActs = 0;
+
+      events.forEach(function (e) {
+        var t = new Date(e.created_at).getTime();
+        if (e.type === 'login') {
+          totalLogins++;
+          if (t >= todayStart.getTime()) loginsToday++;
+          if (t >= weekStart.getTime()) loginsWeek++;
+        } else if (e.type === 'activate_premium') {
+          totalActs++;
+          if (t >= todayStart.getTime()) actsToday++;
+          if (t >= weekStart.getTime()) actsWeek++;
+        }
+      });
+
+      var lastLogin = events.filter(function (e) { return e.type === 'login'; })[0];
+      var lastAct = events.filter(function (e) { return e.type === 'activate_premium'; })[0];
+
+      var expDays = u.expires ? daysUntil(u.expires) : null;
+      var statusText = u.banned ? 'DIBLOKIR' : (expDays !== null && expDays < 0 ? 'Expired' : 'Aktif');
+      var statusCls = u.banned ? 'badge-danger' : (expDays !== null && expDays < 0 ? 'badge-danger' : 'badge-success');
+
+      var html = '';
+      html += '<div class="user-header">';
+      html += '<div class="user-header-avatar">' + esc((u.name || '?').charAt(0)) + '</div>';
+      html += '<div class="user-header-info">';
+      html += '<div class="user-header-name">' + esc(u.name || '(tanpa nama)') + '</div>';
+      html += '<div class="user-header-phone">' + esc(formatPhone(phone)) + '</div>';
+      html += '<div style="margin-top:6px"><span class="badge ' + statusCls + '">' + statusText + '</span> ';
+      if (u.plan) html += '<span class="badge badge-accent">' + esc(u.plan.toUpperCase()) + '</span>';
+      if (u.expires) html += ' <span class="badge badge-neutral">' + formatDate(u.expires) + '</span>';
+      html += '</div>';
+      html += '</div></div>';
+
+      html += '<div class="mini-stats">';
+      html += '<div class="mini-stat"><div class="mini-stat-value">' + loginsToday + '</div><div class="mini-stat-label">Login Hari Ini</div></div>';
+      html += '<div class="mini-stat"><div class="mini-stat-value" style="color:var(--success)">' + actsToday + '</div><div class="mini-stat-label">Aktivasi Hari Ini</div></div>';
+      html += '<div class="mini-stat"><div class="mini-stat-value">' + totalLogins + '</div><div class="mini-stat-label">Total Login</div></div>';
+      html += '<div class="mini-stat"><div class="mini-stat-value" style="color:var(--success)">' + totalActs + '</div><div class="mini-stat-label">Total Aktivasi</div></div>';
+      html += '</div>';
+
+      html += '<div class="note" style="margin-bottom:14px">';
+      html += '<i data-lucide="calendar"></i>';
+      html += '<div>Minggu ini: <strong>' + loginsWeek + ' login</strong> · <strong>' + actsWeek + ' aktivasi</strong><br>';
+      if (lastLogin) html += 'Login terakhir: <strong>' + timeAgo(lastLogin.created_at) + '</strong>';
+      html += '</div></div>';
+
+      html += '<div class="section-head" style="padding:0 0 12px;border-bottom:0">';
+      html += '<div class="section-title" style="font-size:13px">Riwayat Aktivitas</div>';
+      html += '</div>';
+
+      if (!events.length) {
+        html += '<div class="empty" style="padding:24px"><div class="empty-icon"><i data-lucide="inbox"></i></div><div class="empty-title">Belum ada aktivitas</div><div class="empty-desc">Log akan muncul setelah user login.</div></div>';
+      } else {
+        html += '<div class="timeline">';
+        events.slice(0, 30).forEach(function (e) {
+          var t = e.created_at;
+          var label = e.type === 'login' ? 'Login' : (e.type === 'activate_premium' ? 'Aktivasi Premium' : e.type);
+          html += '<div class="tl-item" data-type="' + esc(e.type) + '">';
+          html += '<span class="tl-dot"></span>';
+          html += '<div class="tl-title">' + esc(label) + (e.email ? ' · ' + esc(e.email) : '') + '</div>';
+          html += '<div class="tl-time" title="' + esc(timeFull(t)) + '">' + timeAgo(t) + '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      $('#detail-body').innerHTML = html;
+      icons();
+    } catch (err) {
+      $('#detail-body').innerHTML = '<div class="empty"><div class="empty-icon"><i data-lucide="alert-circle"></i></div><div class="empty-title">Gagal memuat</div><div class="empty-desc">' + esc(err.message) + '</div></div>';
+      icons();
+    }
+  }
+
+  /* ===== ACTIVITY ===== */
+  async function loadActivity() {
+    if (S.activityLoading) return;
+    S.activityLoading = true;
+
+    var q = supabase
+      .from('activity_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    // Filter tanggal
+    var todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    if (S.activityRange === 'today') {
+      q = q.gte('created_at', todayStart.toISOString());
+    } else if (S.activityRange === '7d') {
+      var d7 = new Date(); d7.setDate(d7.getDate() - 7); d7.setHours(0, 0, 0, 0);
+      q = q.gte('created_at', d7.toISOString());
+    } else if (S.activityRange === '30d') {
+      var d30 = new Date(); d30.setDate(d30.getDate() - 30); d30.setHours(0, 0, 0, 0);
+      q = q.gte('created_at', d30.toISOString());
+    }
+
+    if (S.activityType) {
+      q = q.eq('type', S.activityType);
+    }
+
+    try {
+      var res = await q;
+      if (res.error) throw res.error;
+      S.activity = res.data || [];
+      renderActivity();
+    } catch (err) {
+      toast('error', 'Gagal load aktivitas', err.message);
+    } finally {
+      S.activityLoading = false;
+    }
+  }
+
+  function renderActivity() {
+    var q = S.searchActivity.toLowerCase();
+    var events = S.activity.filter(function (e) {
+      if (!q) return true;
+      var hay = ((e.phone || '') + ' ' + (e.name || '') + ' ' + (e.email || '')).toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+
+    // Stats
+    var total = events.length;
+    var logins = events.filter(function (e) { return e.type === 'login'; }).length;
+    var premium = events.filter(function (e) { return e.type === 'activate_premium'; }).length;
+    var uniq = {};
+    events.forEach(function (e) { if (e.phone) uniq[e.phone] = true; });
+
+    $('#act-total').textContent = total;
+    $('#act-logins').textContent = logins;
+    $('#act-premium').textContent = premium;
+    $('#act-unique').textContent = Object.keys(uniq).length;
+
+    $('#activity-count').textContent = events.length + ' aktivitas' + (q ? ' (difilter dari ' + S.activity.length + ')' : '');
+
+    var list = $('#activity-list');
+    if (!events.length) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon"><i data-lucide="activity"></i></div><div class="empty-title">Belum ada aktivitas</div><div class="empty-desc">Coba ubah filter periode atau tunggu user login.</div></div>';
+    } else {
+      list.innerHTML = events.slice(0, 100).map(function (e) {
+        var isLogin = e.type === 'login';
+        var icon = isLogin ? 'log-in' : 'zap';
+        var avatarCls = isLogin ? 'is-login' : 'is-premium';
+        var label = isLogin ? 'Login' : 'Aktivasi Premium';
+        return '<div class="item is-clickable" data-detail="' + esc(e.phone) + '">' +
+          '<div class="item-avatar ' + avatarCls + '"><i data-lucide="' + icon + '"></i></div>' +
+          '<div class="item-info">' +
+            '<div class="item-name">' + esc(label) + ' — ' + esc(e.name || '(tanpa nama)') + '</div>' +
+            '<div class="item-sub">' +
+              '<span>' + esc(formatPhone(e.phone || '')) + '</span>' +
+              (e.email ? '<span>•</span><span>' + esc(e.email) + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="item-time" title="' + esc(timeFull(e.created_at)) + '">' + timeAgo(e.created_at) + '</div>' +
+        '</div>';
+      }).join('');
+    }
+    icons();
+
+    $$('[data-detail]', list).forEach(function (b) {
+      b.onclick = function () { openUserDetail(b.dataset.detail); };
+    });
+  }
+
+  /* ===== TOKEN ===== */
+  function renderTokenTab() {
+    var tok = S.config.token || '—';
+    $('#current-token').innerHTML = '<strong>' + esc(tok) + '</strong>';
+    $('#current-version').textContent = S.config.sessionVersion || 1;
+  }
+
+  async function saveToken() {
+    var newToken = $('#input-token').value.trim();
+    if (!newToken) {
+      toast('error', 'Token kosong', 'Isi token baru atau generate dulu.');
+      return;
+    }
+    if (newToken.indexOf('decatech_') !== 0) {
+      toast('error', 'Format salah', 'Token harus diawali "decatech_".');
+      return;
+    }
+    var alsoLogout = $('#chk-logout-token').checked;
+    var btn = $('#btn-save-token');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span><span>Menyimpan…</span>';
+
+    try {
+      var updates = [
+        supabase.from('app_config').update({ value: newToken, updated_at: new Date().toISOString() }).eq('key', 'token')
+      ];
+      if (alsoLogout) {
+        var newVer = (parseInt(S.config.sessionVersion || '1', 10) || 1) + 1;
+        updates.push(supabase.from('app_config').update({ value: String(newVer), updated_at: new Date().toISOString() }).eq('key', 'sessionVersion'));
+      }
+
+      for (var i = 0; i < updates.length; i++) {
+        var res = await updates[i];
+        if (res.error) throw res.error;
+      }
+
+      await loadConfig();
+      $('#input-token').value = '';
+      $('#chk-logout-token').checked = false;
+      toast('success', 'Token disimpan', alsoLogout ? 'Semua user akan logout.' : 'Token berlaku untuk user baru.');
+      renderTokenTab();
+    } catch (err) {
+      toast('error', 'Gagal menyimpan', err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="save"></i><span>Simpan Token</span>';
+      icons();
+    }
+  }
+
+  function renderSettingsTab() {
+    $('#current-version').textContent = S.config.sessionVersion || 1;
+  }
+
+  async function saveAdminPassword() {
+    var pw = $('#input-new-pw').value;
+    if (!pw || pw.length < 6) {
+      toast('error', 'Password terlalu pendek', 'Minimal 6 karakter.');
+      return;
+    }
+    try {
+      var res = await supabase.from('app_config').update({ value: pw, updated_at: new Date().toISOString() }).eq('key', 'adminPassword');
+      if (res.error) throw res.error;
+      S.config.adminPassword = pw;
+      $('#input-new-pw').value = '';
+      toast('success', 'Password diganti', 'Gunakan password baru saat login berikutnya.');
+    } catch (err) {
+      toast('error', 'Gagal', err.message);
+    }
+  }
+
+  function confirmForceLogout() {
+    showConfirm(
+      'Logout semua user?',
+      'Semua user yang sedang login akan otomatis keluar dalam ~1 detik dan harus memasukkan token + nomor lagi.',
+      'Ya, Logout Semua',
+      async function () {
+        try {
+          var newVer = (parseInt(S.config.sessionVersion || '1', 10) || 1) + 1;
+          var res = await supabase.from('app_config').update({ value: String(newVer), updated_at: new Date().toISOString() }).eq('key', 'sessionVersion');
+          if (res.error) throw res.error;
+          S.config.sessionVersion = String(newVer);
+          toast('success', 'Semua user akan logout', 'Session version: ' + newVer);
+          renderTokenTab();
+          renderSettingsTab();
+        } catch (err) {
+          toast('error', 'Gagal', err.message);
+        }
+      }
+    );
+  }
+
+  /* ===== CONFIRM ===== */
+  function showConfirm(title, msg, yesLabel, callback) {
+    $('#confirm-title').textContent = title;
+    $('#confirm-msg').textContent = msg;
+    $('#btn-confirm-yes').textContent = yesLabel || 'Ya, Lanjutkan';
+    S.confirmCallback = callback;
+    $('#modal-confirm').classList.add('is-open');
+    icons();
+  }
+  function closeConfirm() {
+    $('#modal-confirm').classList.remove('is-open');
+    S.confirmCallback = null;
+  }
+
+  /* ===== REALTIME ===== */
+  function subscribeRealtime() {
+    try {
+      // Subscribe ke activity_log untuk update live
+      supabase
+        .channel('admin-activity-watch')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'activity_log' },
+          function (payload) {
+            var e = payload.new;
+            if (!e) return;
+            // Prepend ke list lokal
+            S.activity.unshift(e);
+            if (S.activity.length > 500) S.activity.pop();
+            // Re-render kalau sedang di tab activity
+            if (S.currentTab === 'activity') renderActivity();
+            // Update dashboard today stats
+            loadTodayStats();
+          }
+        )
+        .subscribe();
+
+      // Subscribe ke users untuk perubahan data
+      supabase
+        .channel('admin-users-watch')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'users' },
+          function () {
+            loadUsers().then(function () {
+              renderDashboard();
+              renderUsers();
+            });
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime subscription failed:', e);
+    }
+  }
+
+  /* ===== BINDINGS ===== */
+  function bindAll() {
+    $$('.tab').forEach(function (b) {
+      b.addEventListener('click', function () { switchTab(b.dataset.tab); });
+    });
+
+    $('#btn-goto-users').addEventListener('click', function () { switchTab('users'); });
+    $('#btn-goto-activity').addEventListener('click', function () { switchTab('activity'); });
+
+    $('#btn-add-user').addEventListener('click', function () { openUserModal(null); });
+    $('#btn-save-user').addEventListener('click', saveUser);
+
+    $$('[data-close]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var modal = el.closest('.modal');
+        if (modal) modal.classList.remove('is-open');
+        if (modal && modal.id === 'modal-user') S.editingPhone = null;
+        if (modal && modal.id === 'modal-confirm') S.confirmCallback = null;
+      });
+    });
+
+    $('#btn-confirm-yes').addEventListener('click', function () {
+      var cb = S.confirmCallback;
+      closeConfirm();
+      if (typeof cb === 'function') cb();
+    });
+
+    $('#search-users').addEventListener('input', function (e) {
+      S.searchUsers = e.target.value;
+      renderUsers();
+    });
+
+    $('#search-activity').addEventListener('input', function (e) {
+      S.searchActivity = e.target.value;
+      renderActivity();
+    });
+
+    // Date filter chips
+    $$('#date-filter .chip').forEach(function (c) {
+      c.addEventListener('click', function () {
+        $$('#date-filter .chip').forEach(function (b) { b.classList.remove('is-active'); });
+        c.classList.add('is-active');
+        S.activityRange = c.dataset.range;
+        loadActivity();
+      });
+    });
+
+    // Type filter chips
+    $$('#type-filter .chip').forEach(function (c) {
+      c.addEventListener('click', function () {
+        $$('#type-filter .chip').forEach(function (b) { b.classList.remove('is-active'); });
+        c.classList.add('is-active');
+        S.activityType = c.dataset.type;
+        loadActivity();
+      });
+    });
+
+    $('#btn-refresh-activity').addEventListener('click', function () {
+      toast('info', 'Memuat ulang...', '');
+      loadActivity();
+    });
+
+    $('#btn-generate-token').addEventListener('click', function () {
+      $('#input-token').value = generateToken();
+    });
+    $('#btn-save-token').addEventListener('click', saveToken);
+
+    $('#btn-force-logout').addEventListener('click', confirmForceLogout);
+    $('#btn-save-pw').addEventListener('click', saveAdminPassword);
+
+    $('#btn-refresh').addEventListener('click', function () {
+      toast('info', 'Memuat ulang...', '');
+      refreshAll();
+    });
+
+    $('#btn-logout').addEventListener('click', function () {
+      showConfirm('Keluar dari panel?', 'Anda perlu memasukkan password admin lagi untuk masuk.', 'Keluar', logout);
+    });
+
+    // Duration presets
+    $$('.duration-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var days = parseInt(b.dataset.days, 10) || 0;
+        setDurationPreset(days, b);
+      });
+    });
+
+    var expiresInput = $('#u-expires');
+    if (expiresInput) {
+      expiresInput.addEventListener('input', function () {
+        $$('.duration-btn').forEach(function (b) { b.classList.remove('is-active'); });
+        updateExpiresInfo();
+      });
+      expiresInput.addEventListener('change', function () {
+        var val = expiresInput.value;
+        if (!val) {
+          var forever = document.querySelector('.duration-btn[data-days="0"]');
+          if (forever) forever.classList.add('is-active');
+        } else {
+          var days = daysUntil(val);
+          var presets = [7, 30, 90, 180, 365];
+          var closest = null;
+          var minDiff = 5;
+          presets.forEach(function (p) {
+            var diff = Math.abs(days - p);
+            if (diff < minDiff) { minDiff = diff; closest = p; }
+          });
+          $$('.duration-btn').forEach(function (b) { b.classList.remove('is-active'); });
+          if (closest) {
+            var btn = document.querySelector('.duration-btn[data-days="' + closest + '"]');
+            if (btn) btn.classList.add('is-active');
+          }
+        }
+        updateExpiresInfo();
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        $$('.modal.is-open').forEach(function (m) { m.classList.remove('is-open'); });
+      }
+    });
+
+    $('#login-pw').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') $('#login-form').dispatchEvent(new Event('submit', { cancelable: true }));
+    });
+
+    $$('#modal-user input').forEach(function (inp) {
+      inp.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); saveUser(); }
+      });
+    });
+  }
+
+  /* ===== INIT ===== */
+  function init() {
+    icons();
+    bindLogin();
+    bindAll();
+
+    if (ls.get('admin.session', '') === '1') {
+      S.loggedIn = true;
+      showMain();
+    } else {
+      $('#view-login').hidden = false;
+    }
+
+    icons();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
